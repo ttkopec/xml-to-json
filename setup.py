@@ -10,10 +10,10 @@ setup(
     url='https://github.com/ttkopec/xml-to-json',
     install_requires=[
         'lxml',
-        'pyang==1.7.3b'
+        'pyang==1.7.3c'
     ],
     dependency_links=[
-        'https://github.com/ttkopec/pyang/tarball/pyang-byang#egg=pyang-1.7.3b'
+        'https://github.com/ttkopec/pyang/tarball/pyang-byang#egg=pyang-1.7.3c'
     ],
     keywords=['xml', 'yang', 'xsl'],
 )
