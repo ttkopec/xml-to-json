@@ -9,6 +9,7 @@ setup(
     author_email='tkopec@cisco.com',
     url='https://github.com/ttkopec/xml-to-json',
     install_requires=[
+        'lxml',
         'pyang==1.7.3b'
     ],
     dependency_links=[
