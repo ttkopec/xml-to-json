@@ -9,10 +9,7 @@ setup(
     author_email='tkopec@cisco.com',
     url='https://github.com/ttkopec/xml-to-json',
     install_requires=[
-        'pyang'
-    ],
-    dependency_links=[
-        'git+https://github.com/ttkopec/pyang/tarball/master#egg=pyang-byang'
+        'pyang@https://github.com/ttkopec/pyang/tarball/pyang-byang#egg=pyang-byang'
     ],
     keywords=['xml', 'yang', 'xsl'],
 )
