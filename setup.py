@@ -7,9 +7,12 @@ setup(
     description='Schema aware xml to json translator based on xsl',
     author='Tomasz Kopec',
     author_email='tkopec@cisco.com',
-    url='https://github.com/ttkopec/pyang',
+    url='https://github.com/ttkopec/xml-to-json',
     install_requires=[
-        "pyang !=1.7.4, >= 1.7.3"
+        'pyang'
+    ],
+    dependency_links=[
+        'git+https://github.com/ttkopec/pyang/tarball/master#egg=pyang-byang'
     ],
     keywords=['xml', 'yang', 'xsl'],
 )
