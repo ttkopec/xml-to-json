@@ -46,14 +46,14 @@ def parse_from_files(xsl_path, xml_path):
     xsl_tree = ET.parse(xsl_path)
     xml_tree = ET.parse(xml_path)
 
-    return parse_from_files(xsl_tree, xml_tree)
+    return parse(xsl_tree, xml_tree)
 
 
 def parse_from_strings(xsl_string, xml_string):
     xsl_tree = ET.fromstring(xsl_string)
     xml_tree = ET.fromstring(xml_string)
 
-    return parse_from_files(xsl_tree, xml_tree)
+    return parse(xsl_tree, xml_tree)
 
 
 def parse_from_rpc(rpc_string, yang_directory):
