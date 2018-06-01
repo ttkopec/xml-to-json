@@ -1,3 +1,4 @@
+import logging
 import os
 import xmltojson.yang as yang
 import lxml.etree as ET
@@ -7,6 +8,15 @@ _dir = os.getcwd()
 xsl_path = os.path.join(_dir, 'out.xsl')
 xml_path = os.path.join(_dir, 'out.xml')
 _files = [xsl_path, xml_path]
+
+logger = logging.getLogger('xml-to-json')
+logger.setLevel(os.environ.get('LOG_LEVEL', None) or logging.DEBUG)
+
+ch = logging.StreamHandler()
+formatter = logging.Formatter('%(asctime)s - %(levelname)s - %(funcName)s:%(lineno)d: %(message)s')
+ch.setFormatter(formatter)
+
+logger.addHandler(ch)
 
 
 def gen_xsl_file(models, yang_directory, output_file=xsl_path):
@@ -56,14 +66,17 @@ def parse_from_strings(xsl_string, xml_string):
     return parse(xsl_tree, xml_tree)
 
 
-def parse_from_rpc(rpc_string, yang_directory):
+def parse_from_rpc(rpc_string, yang_directory, yangs=None):
+    if not yangs:
+        yangs = yang.get_models_dict(yang_directory)
+
     rpc_tree = ET.fromstring(rpc_string)
 
     # get rid of <rpc-reply>
     data = rpc_tree.xpath('/nc:rpc-reply/nc:data/*', namespaces={'nc': 'urn:ietf:params:xml:ns:netconf:base:1.0'})
 
     if len(data) == 0:
-        print('Invalid rpc: no <data> inside <rpc-reply>')
+        logger.error('Invalid rpc: no <data> inside <rpc-reply>')
         return None
 
     config = ET.fromstring('<config xmlns="urn:ietf:params:xml:ns:netconf:base:1.0"></config>')
@@ -71,16 +84,14 @@ def parse_from_rpc(rpc_string, yang_directory):
     for element in data:
         config.append(element)
 
-    yangs = yang.get_models_dict(yang_directory)
-
-    models = []
+    models = set()
 
     for namespace in yang.extract_namespaces(ET.tostring(config).decode()):
         model = yangs.get(namespace, None)
         if not model:
-            print('WARNING: No model with namespace: ({}) in directory: ({})'.format(namespace, model))
+            logger.warning('WARNING: No model with namespace: ({}) in directory: ({})'.format(namespace, model))
         else:
-            models.append(model.file_name)
+            models.add(model.file_name)
 
     output_file = xsl_path
     gen_xsl_file(models, yang_directory, output_file=output_file)

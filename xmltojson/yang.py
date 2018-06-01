@@ -42,7 +42,7 @@ def search_file(file_path, pattern_dict):
 
 
 def extract_namespaces(xml_string):
-    pattern = re.compile(r'xmlns=\"(.*?)\"')
+    pattern = re.compile(r'xmlns(?::\w+)?=\"(.*?)\"')
     return pattern.findall(xml_string)
 
 
