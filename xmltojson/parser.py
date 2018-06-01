@@ -72,24 +72,12 @@ def parse_from_rpc(rpc_string, yang_directory, yangs=None):
 
     rpc_tree = ET.fromstring(rpc_string)
 
-    # get rid of <rpc-reply>
-    data = rpc_tree.xpath('/nc:rpc-reply/nc:data/*', namespaces={'nc': 'urn:ietf:params:xml:ns:netconf:base:1.0'})
-
-    if len(data) == 0:
-        logger.error('Invalid rpc: no <data> inside <rpc-reply>')
-        return None
-
-    config = ET.fromstring('<config xmlns="urn:ietf:params:xml:ns:netconf:base:1.0"></config>')
-
-    for element in data:
-        config.append(element)
-
     models = set()
 
-    for namespace in yang.extract_namespaces(ET.tostring(config).decode()):
+    for namespace in yang.extract_namespaces(ET.tostring(rpc_tree).decode()):
         model = yangs.get(namespace, None)
         if not model:
-            logger.warning('WARNING: No model with namespace: ({}) in directory: ({})'.format(namespace, model))
+            logger.warning('WARNING: No model with namespace: ({}) in directory: ({})'.format(namespace, yang_directory))
         else:
             models.add(model.file_name)
 
@@ -97,7 +85,7 @@ def parse_from_rpc(rpc_string, yang_directory, yangs=None):
     gen_xsl_file(models, yang_directory, output_file=output_file)
     xsl_tree = ET.parse(output_file)
 
-    return parse(xsl_tree, config)
+    return parse(xsl_tree, rpc_tree)
 
 
 def yangs_to_json(models, yang_directory, do_cleanup=True):
