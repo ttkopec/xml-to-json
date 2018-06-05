@@ -19,14 +19,15 @@ ch.setFormatter(formatter)
 logger.addHandler(ch)
 
 
-def gen_xsl_file(models, yang_directory, output_file=xsl_path):
+def gen_xsl_file(models, yang_directory, output_file=xsl_path, absolute=False):
     """
     :param models: list of yang models, for example ['ietf-interfaces.yang', ...]
     :param yang_directory: single yang directory where models reside
     :param output_file: output file, default is `pwd`/out.xml
     :return: None
     """
-    models = [os.path.join(yang_directory, model) for model in models]
+    if not absolute:
+        models = [os.path.join(yang_directory, model) for model in models]
 
     stub.run(models, 'jsonxsl', output_file, yang_directory)
 
@@ -79,10 +80,10 @@ def parse_from_rpc(rpc_string, yang_directory, yangs=None):
         if not model:
             logger.warning('WARNING: No model with namespace: ({}) in directory: ({})'.format(namespace, yang_directory))
         else:
-            models.add(model.file_name)
+            models.add(model.abs_path)
 
     output_file = xsl_path
-    gen_xsl_file(models, yang_directory, output_file=output_file)
+    gen_xsl_file(models, yang_directory, output_file=output_file, absolute=True)
     xsl_tree = ET.parse(output_file)
 
     return parse(xsl_tree, rpc_tree)
@@ -105,3 +106,4 @@ def yangs_to_json(models, yang_directory, do_cleanup=True):
         if do_cleanup:
             cleanup()
         raise e
+
