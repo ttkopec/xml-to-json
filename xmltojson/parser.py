@@ -78,12 +78,12 @@ def parse_from_rpc(rpc_string, yang_directory, yangs=None):
     for namespace in yang.extract_namespaces(ET.tostring(rpc_tree).decode()):
         model = yangs.get(namespace, None)
         if not model:
-            logger.warning('WARNING: No model with namespace: ({}) in directory: ({})'.format(namespace, yang_directory))
+            logger.warning('WARNING: No model with namespace: ({}) in directory: ({})'.format(namespace, model))
         else:
             models.add(model.abs_path)
 
     output_file = xsl_path
-    gen_xsl_file(models, yang_directory, output_file=output_file, absolute=True)
+    gen_xsl_file(list(models), yang_directory, output_file=output_file, absolute=True)
     xsl_tree = ET.parse(output_file)
 
     return parse(xsl_tree, rpc_tree)
