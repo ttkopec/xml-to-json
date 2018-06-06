@@ -29,11 +29,36 @@ def gen_xsl_file(models, yang_directory, output_file=xsl_path, absolute=False):
     if not absolute:
         models = [os.path.join(yang_directory, model) for model in models]
 
+    if type(yang_directory) is list:
+        tmp = ""
+        for dir in yang_directory:
+            tmp += dir + ":"
+
+        yang_directory = tmp
+
     stub.run(models, 'jsonxsl', output_file, yang_directory)
 
 
-def gen_sample_file(models, yang_directory, output_file=xml_path):
-    models = [os.path.join(yang_directory, model) for model in models]
+def gen_sample_file(models, yang_directory, output_file=xml_path, absolute=False):
+    if not absolute:
+        models = [os.path.join(yang_directory, model) for model in models]
+
+    if type(yang_directory) is list:
+        tmp = ""
+        for dir in yang_directory:
+            tmp += dir + ":"
+
+        yang_directory = tmp
+
+
+    if False: #debug stuff
+        text = "pyang -f sample-xml-skeleton "
+        # prepare pyang command:
+        for model in models:
+            text += model + " "
+
+        text += " -p " + yang_directory
+        logger.debug(text)
 
     stub.run(models, 'sample-xml-skeleton', output_file, yang_directory, sample_defaults=True)
 
@@ -73,9 +98,18 @@ def parse_from_rpc(rpc_string, yang_directory, yangs=None):
 
     rpc_tree = ET.fromstring(rpc_string)
 
+    # get rid of <rpc-reply>
+    data = rpc_tree.xpath('/nc:rpc-reply/nc:data/*', namespaces={'nc': 'urn:ietf:params:xml:ns:netconf:base:1.0'})
+
+    if len(data) == 0:
+        logger.error('Invalid rpc: no <data> inside <rpc-reply>')
+        return None
+
+    config = rpc_tree
+
     models = set()
 
-    for namespace in yang.extract_namespaces(ET.tostring(rpc_tree).decode()):
+    for namespace in yang.extract_namespaces(ET.tostring(config).decode()):
         model = yangs.get(namespace, None)
         if not model:
             logger.warning('WARNING: No model with namespace: ({}) in directory: ({})'.format(namespace, model))
@@ -86,15 +120,15 @@ def parse_from_rpc(rpc_string, yang_directory, yangs=None):
     gen_xsl_file(list(models), yang_directory, output_file=output_file, absolute=True)
     xsl_tree = ET.parse(output_file)
 
-    return parse(xsl_tree, rpc_tree)
+    return parse(xsl_tree, config)
 
 
-def yangs_to_json(models, yang_directory, do_cleanup=True):
+def yangs_to_json(models, yang_directory, do_cleanup=True, absolute=False):
     try:
         cleanup()
 
-        gen_sample_file(models, yang_directory)
-        gen_xsl_file(models, yang_directory)
+        gen_sample_file(models, yang_directory, absolute=absolute)
+        gen_xsl_file(models, yang_directory, absolute=absolute)
 
         result = parse_from_files(*_files)
 
@@ -106,4 +140,3 @@ def yangs_to_json(models, yang_directory, do_cleanup=True):
         if do_cleanup:
             cleanup()
         raise e
-

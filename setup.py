@@ -3,7 +3,7 @@ from distutils.core import setup
 setup(
     name='xml-to-json',
     packages=['xmltojson'],
-    version='0.14',
+    version='0.15',
     description='Schema aware xml to json translator based on xsl',
     author='Tomasz Kopec',
     author_email='tkopec@cisco.com',
