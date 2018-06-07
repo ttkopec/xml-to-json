@@ -92,7 +92,7 @@ def parse_from_strings(xsl_string, xml_string):
     return parse(xsl_tree, xml_tree)
 
 
-def parse_from_rpc(rpc_string, yang_directory, yangs=None):
+def parse_from_rpc(rpc_string, yang_directory, yangs=None, override_yang_directory = False):
     if not yangs:
         yangs = yang.get_models_dict(yang_directory)
 
@@ -109,11 +109,17 @@ def parse_from_rpc(rpc_string, yang_directory, yangs=None):
 
     models = set()
 
-    for namespace in yang.extract_namespaces(ET.tostring(config).decode()):
+    overwritten = False
+
+    for namespace in yang.extract_namespaces(rpc_string):
         model = yangs.get(namespace, None)
         if not model:
             logger.warning('WARNING: No model with namespace: ({}) in directory: ({})'.format(namespace, model))
         else:
+            if override_yang_directory and not overwritten:
+                yang_directory = model.directory
+                overwritten = False
+
             models.add(model.abs_path)
 
     output_file = xsl_path
@@ -140,3 +146,4 @@ def yangs_to_json(models, yang_directory, do_cleanup=True, absolute=False):
         if do_cleanup:
             cleanup()
         raise e
+
