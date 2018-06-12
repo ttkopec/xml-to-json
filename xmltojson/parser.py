@@ -50,16 +50,6 @@ def gen_sample_file(models, yang_directory, output_file=xml_path, absolute=False
 
         yang_directory = tmp
 
-
-    if False: #debug stuff
-        text = "pyang -f sample-xml-skeleton "
-        # prepare pyang command:
-        for model in models:
-            text += model + " "
-
-        text += " -p " + yang_directory
-        logger.debug(text)
-
     stub.run(models, 'sample-xml-skeleton', output_file, yang_directory, sample_defaults=True)
 
 
@@ -92,20 +82,11 @@ def parse_from_strings(xsl_string, xml_string):
     return parse(xsl_tree, xml_tree)
 
 
-def parse_from_rpc(rpc_string, yang_directory, yangs=None, override_yang_directory = False):
+def parse_from_rpc(rpc_string, yang_directory, yangs=None, override_yang_directory=False, output_file=None):
     if not yangs:
         yangs = yang.get_models_dict(yang_directory)
 
-    rpc_tree = ET.fromstring(rpc_string)
-
-    # get rid of <rpc-reply>
-    data = rpc_tree.xpath('/nc:rpc-reply/nc:data/*', namespaces={'nc': 'urn:ietf:params:xml:ns:netconf:base:1.0'})
-
-    if len(data) == 0:
-        logger.error('Invalid rpc: no <data> inside <rpc-reply>')
-        return None
-
-    config = rpc_tree
+    config = ET.fromstring(rpc_string)
 
     models = set()
 
@@ -122,7 +103,9 @@ def parse_from_rpc(rpc_string, yang_directory, yangs=None, override_yang_directo
 
             models.add(model.abs_path)
 
-    output_file = xsl_path
+    if not output_file:
+        output_file = xsl_path
+
     gen_xsl_file(list(models), yang_directory, output_file=output_file, absolute=True)
     xsl_tree = ET.parse(output_file)
 
@@ -146,4 +129,3 @@ def yangs_to_json(models, yang_directory, do_cleanup=True, absolute=False):
         if do_cleanup:
             cleanup()
         raise e
-
